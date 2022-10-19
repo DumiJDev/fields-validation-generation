@@ -41,6 +41,8 @@
         font-family: 'Times New Roman', Times, serif;
         font-size: 13pt;
         font-weight: 400;
+        overflow-y: auto;
+        max-height: 100vh;
       }
 
       button {
@@ -111,7 +113,7 @@
             &nbsp;&nbsp;&nbsp;&nbsp;INDEX = INDEX + 1;<br />
             END WHILE;<br />
         `;
-          else return `CALL ao.bai.error.validate.require(${field}, env, ${field.substring(0, field.indexOf('.')-2)});<br />`;
+          else return `CALL ao.bai.error.validate.require(${field}, env, ${field.substring(0, field.indexOf('.'))});<br />`;
         };
 
         const a = extractFields(JSON.parse(json)).map(format);
