@@ -113,7 +113,7 @@
             &nbsp;&nbsp;&nbsp;&nbsp;INDEX = INDEX + 1;<br />
             END WHILE;<br />
         `;
-          else return `CALL ao.bai.error.validate.require(${field}, env, ${field.substring(0, field.indexOf('.'))});<br />`;
+          else return `CALL ao.bai.error.validate.require(${field}, env, ${field.substring(0, field.includes('.') ? field.indexOf('.') : field.length)});<br />`;
         };
 
         const a = extractFields(JSON.parse(json)).map(format);
