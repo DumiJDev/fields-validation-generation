@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON to ESQL Validation Fields</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      body {
+        display: grid;
+        grid-template-columns: 40vw auto;
+        min-height: 100vh;
+      }
+
+      #input {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: darkblue;
+        color: #fff;
+        font-weight: 400;
+      }
+      label {
+        margin-bottom: 30px;
+      }
+
+      .card,
+      #output {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      #output {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 13pt;
+        font-weight: 400;
+      }
+
+      button {
+        margin-top: 20px;
+        padding: 10px 30px;
+        border-radius: 5px;
+        border: 1px solid gold;
+        color: gold;
+        background-color: transparent;
+        transition: all linear 300ms;
+      }
+
+      button:hover {
+        padding: 13px 33px;
+        border-radius: 0;
+        border: none;
+        color: darkblue;
+        background-color: gold;
+        pointer-events: painted;
+        transition: all linear 300ms;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="input">
+      <div class="card">
+        <label for="json">Write or paste the JSON here</label>
+        <textarea name="json" id="json" cols="30" rows="10"></textarea>
+        <button onclick="generate()">generate</button>
+      </div>
+    </div>
+    <div id="output"></div>
+    <script>
+      function generate() {
+        const json = document.getElementById("json").value;
+
+        console.log(json);
+
+        const extractFields = (obj) => {
+          const fields = [];
+
+          for (const field in obj) {
+            if (parseInt(field) > 0) break;
+            else if (typeof obj[field] === "object")
+              fields.push(
+                ...extractFields(obj[field]).map((ex) => field + "." + ex)
+              );
+            else fields.push(field);
+          }
+
+          return fields;
+        };
+
+        const format = (field) => {
+          if (field.includes("0"))
+            return `
+            DECLARE INDEX INTEGER 1;<br />
+            DECLARE LEN INTERGER CARDINALITY(${field.substring(
+              0,
+              field.lastIndexOf(".") - 2
+            )}[]);<br />
+            <br />
+            WHILE INDEX <= LEN DO<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;CALL ao.bai.error.validate.require(${field.replace(
+              ".0",
+              "[INDEX]"
+            )}, env, ${field.substring(0, field.indexOf('.')-2)});<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;INDEX = INDEX + 1;<br />
+            END WHILE;<br />
+        `;
+          else return `CALL ao.bai.error.validate.require(${field}, env, ${field.substring(0, field.indexOf('.')-2)});<br />`;
+        };
+
+        const a = extractFields(JSON.parse(json)).map(format);
+
+        console.log(a);
+
+        document.getElementById("output").innerHTML = "";
+
+        const len = a.length;
+
+        let i = 0;
+
+        const id = setInterval(() => {
+          document.getElementById("output").innerHTML += a[i];
+          i = i + 1;
+        }, 700);
+
+        setTimeout(() => {
+          clearInterval(id)
+          alert('Generated with successfully!!!')
+        }, 700 * (len + 1));
+      }
+    </script>
+  </body>
+</html>
